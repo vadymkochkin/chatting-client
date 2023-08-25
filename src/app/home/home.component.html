@@ -1,0 +1,247 @@
+<div id="frame">
+	<div id="sidepanel">
+		<div id="profile">
+			<div class="wrap">
+				<img id="profile-img" src="{{useravatar}}" class="online" alt="" />
+				<p>{{username}}</p>
+				<i class="fa fa-chevron-down expand-button" aria-hidden="true"></i>
+				<div id="status-options">
+					<ul>
+						<li id="status-online" class="active"><span class="status-circle"></span>
+							<p>Online</p>
+						</li>
+						<li id="status-offline"><span class="status-circle"></span>
+							<p>Offline</p>
+						</li>
+					</ul>
+				</div>
+				<div id="expanded">
+					<label for="twitter"><i class="fa fa-camera fa-fw" aria-hidden="true"></i></label>
+					<input name="twitter" type="text" value="mikeross" />
+					<label for="twitter"><i class="fa fa-phone fa-fw" aria-hidden="true"></i></label>
+					<input name="twitter" type="text" value="ross81" />
+				</div>
+			</div>
+		</div>
+		<div id="search">
+			<label for=""><i class="fa fa-search" aria-hidden="true"></i></label>
+			<input type="text" placeholder="Search contacts..." />
+		</div>
+		<div id="contacts">
+			<ul>
+				<li *ngFor="let contact of contactsData" (click)="selectUser(contact.id)" id="{{contact.id}}"
+					class="contact {{contact.id == selectedUserId ? 'active' : ''}}">
+					<div class="wrap">
+						<span class="contact-status {{contact.status}}"></span>
+						<img src="{{contact.avatar_url}}" alt="" />
+						<div class="meta">
+							<p class="name">{{contact.name}}</p>
+							<p class="preview">{{contact.lastmessage}}</p>
+						</div>
+						<input type="hidden" class="status" value="{{contact.state}}" />
+						<div class="badgebody"><span class="badge"></span></div>
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div id="bottom-bar">
+			<button id="addcontact"><i class="fa fa-user-plus fa-fw" aria-hidden="true"></i> <span>Add
+					contact</span></button>
+			<button id="settings" (click)="showSettingModal()"><i class="fa fa-cog fa-fw" aria-hidden="true"></i>
+				<span>Settings</span></button>
+		</div>
+	</div>
+	<div class="content">
+		<div class="contact-profile">
+			<img src="{{selectedAvatarUrl}}" alt="" />
+			<p>{{selectedUserName}}</p>
+			<div class="social-media">
+				<i class="fa fa-camera" aria-hidden="true" title='Video Call' (click)="moveVideoCall()"></i>
+				<i class="fa fa-phone" aria-hidden="true" title='Voice Call' (click)="moveVoiceCall()"></i>
+				<i class="fa fa-sign-out" aria-hidden="true" title='Sign Out' (click)="signOut()"></i>
+			</div>
+		</div>
+		<div class="acceptpanel">
+			<div class="row">
+				<img src="{{selectedAvatarUrl}}" alt="" />
+				<p>{{selectedUserName}}</p>
+			</div>
+			<div class="row">
+				<button class="btn btn-outline" (click)="acceptRequest()">Accept</button>
+				<button class="btn btn-outline" (click)="declineRequest()">Decline</button>
+			</div>
+		</div>
+		<div class="messages">
+
+			<ul #messagelist>
+				<li *ngFor="let m of messages" id="{{m._id}}" [ngClass]="{
+					'sent':m.fromUsername === userId,
+					'replies':m.fromUsername === selectedUserId
+				}">
+					<img [src]="m.fromUsername == userId ? useravatar : selectedAvatarUrl" alt="" />
+					<p (ngInit)="loadevent($event)" [innerHtml]="decode(m.data)">{{m.data}}</p>
+					<span class="oper" *ngIf="m.fromUsername === userId">
+						<i class="fa fa-edit editmsg" (click)="editMsg(m._id)"></i> <i class="fa fa-trash delmsg"
+							(click)="delMsg(m._id)"></i>
+					</span>
+				</li>
+			</ul>
+		</div>
+		<div class="message-input">
+			<emoji-mart title="Pick your emoji…" emoji="point_up" *ngIf="showEmoji" (emojiSelect)="addEmoji($event)">
+			</emoji-mart>
+			<div *ngIf="showGiphySearch" class="giphy-search">
+				<form (ngSubmit)="searchGiphy()">
+					<input type="text" placeholder="Search for a GIF" name="giphy" [(ngModel)]="giphySearchTerm">
+				</form>
+				<ul class="search-results">
+					<li class="gif-result" *ngFor="let result of giphyResults">
+						<img src="{{ result.images.downsized_large.url }}"
+							(click)="sendGif(result.title, result.images.original.url)">
+					</li>
+				</ul>
+			</div>
+			<div class="wrap">
+				<i class="fa fa-smile-o icon-emoticon-smile attachment" aria-hidden="true"
+					(click)="showEmojiPicker()"></i>
+				<!-- <i class="fa fa-image attachment" aria-hidden="true" (click)="toggleGiphySearch()"></i> -->
+				<input type="text" [(value)]="message" [(ngModel)]="message" id="message"
+					placeholder="Write your message..." [disabled]="!selectedUserId" />
+				<div style="position: relative;display: inline;">
+					<i class="fa fa-paperclip attachment" aria-hidden="true"></i>
+					<input type="file" style="position: absolute;
+							width: 20px;
+							height: 20px;
+							top: 10px;
+							left: 0;
+							opacity: 0;" id="attachmentfile" onclick="this.value = null" (change)="selectFile($event)" />
+				</div>
+				<button class="submit" [disabled]="!selectedUserId"><i class="fa fa-paper-plane"
+						aria-hidden="true"></i></button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Call Modal -->
+<div class="modal fade right show modal-scrolling" id="modalRelatedContent" tabindex="-1" role="dialog"
+	aria-labelledby="myModalLabel" data-backdrop="false" aria-modal="true" style="padding-right: 17px; display: block;">
+	<div class="modal-dialog modal-side modal-bottom-right modal-notify modal-info" id="callmodal" role="document">
+		<!--Content-->
+		<div class="modal-content">
+			<!--Header-->
+			<div class="modal-header">
+				<p class="heading">Video&Voice Call</p>
+			</div>
+
+			<!--Body-->
+			<div class="modal-body">
+
+				<div class="row">
+					<div class="col-5">
+						<img [src]="callingUserAvatar"
+							class="calling-useravatar" alt="Material Design for Bootstrap - example photo">
+					</div>
+
+					<div class="col-7">
+						<p>
+							<strong>Calling Now</strong>
+						</p>
+						<button type="button" class="btn btn-success btn-md waves-effect waves-light"
+							(click)="acceptCall()">
+							<i class="fa fa-phone"></i>
+						</button>
+						<button type="button" class="btn btn-danger btn-md waves-effect waves-light" style="margin-left: 30px;"
+							(click)="refuseCall()">
+							<i class="fa fa-times"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--/.Content-->
+	</div>
+</div>
+<!-- Call Modal End -->
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+	<div class="modal-dialog" style="margin-top: 7.375rem;">
+
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Settings</h4>
+				<img [src]="useravatar"
+					style="width:100px;height: 100px;border-radius: 100px;border: 2px solid lightgray;" />
+			</div>
+			<div class="modal-body">
+				<div class="row pdata">
+					<div class="col-md-6">Profile Picture</div>
+					<div class="col-md-6 text-right">
+						<button class="btn btn-default btn-outline" (click)="showCropperModal()">Add/Edit
+							Picture</button>
+					</div>
+				</div>
+
+				<div class="row pdata">
+					<div class="col-md-6">Name</div>
+					<input type="text" class="col-md-6" id="s_uname" [(ngModel)]="s_uname" />
+				</div>
+
+				<div class="row pdata">
+					<div class="col-md-6">Email</div>
+					<input type="text" class="col-md-6" id="s_uemail" [(ngModel)]="s_uemail">
+				</div>
+
+				<div class="row pdata">
+					<div class="col-md-6">Birthday</div>
+					<input type="text" class="col-md-6" id="s_ubirth" [(ngModel)]="s_ubirth">
+				</div>
+
+				<div class="row pdata">
+					<div class="col-md-6">Address</div>
+					<input type="text" class="col-md-6" id="s_uaddr" [(ngModel)]="s_uaddr">
+				</div>
+
+				<div class="row pdata">
+					<div class="col-md-6">Virtual Phone Number</div>
+					<input type="text" class="col-md-6" id="s_uvhnum" [(ngModel)]="s_uvhnum">
+				</div>
+
+				<div class="row pdata">
+					<div class="col-md-6">New Password</div>
+					<input type="text" class="col-md-6" id="s_upwd" [(ngModel)]="s_upwd">
+				</div>
+
+				<div class="row pdata">
+					<div class="col-md-6">Re-Enter Password</div>
+					<input type="text" class="col-md-6" id="s_reupwd" [(ngModel)]="s_reupwd">
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default btn-outline" (click)="saveSetting()">Save</button>
+				<button type="button" class="btn btn-default btn-outline hideSetting">Close</button>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+<div id="cropmodal" class="modal fade" role="dialog">
+	<div class="modal-dialog" style="margin-top: 7.375rem;">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Edit Profile Image</h4>
+				<img [src]="data.image" [width]="cropperSettings.croppedWidth" [height]="cropperSettings.croppedHeight">
+			</div>
+			<div class="modal-content">
+				<img-cropper [image]="data" [settings]="cropperSettings"></img-cropper>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default btn-outline" (click)="saveAvatar()">Crop</button>
+				<button type="button" class="btn btn-default btn-outline hideCrop">Close</button>
+			</div>
+		</div>
+	</div>
+</div>

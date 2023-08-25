@@ -1,0 +1,11 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~@ctrl/ngx-emoji-mart/picker";
+@import '~ngx-toastr/toastr.css'; 
+.overlay-container{
+    position: absolute;
+    left: 4px;
+    top: 4px;
+}
+.ngx-file-drop__drop-zone,.ngx-file-drop__content {
+  height: auto!important;
+}

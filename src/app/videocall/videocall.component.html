@@ -1,0 +1,79 @@
+<div class="maincontainer">
+  <div class="messagepanel" [ngClass]="{
+    'active': showMessagePanel == true 
+  }">
+    <div class="messages">
+			<ul #messagelist>
+				<li *ngFor="let m of messages" id="{{m._id}}" [ngClass]="{
+					'sent':m.fromUsername === userId,
+					'replies':m.fromUsername === contact_id
+				}">
+					<img [src]="m.fromUsername == userId ? useravatar : selectedAvartarUrl" alt="" />
+					<p [innerHTML]="decode(m.data)"></p>
+					<span class="oper" *ngIf="m.fromUsername === userId">
+						<i class="fa fa-edit editmsg" (click)="editMsg(m._id)"></i> <i class="fa fa-trash delmsg" (click)="delMsg(m._id)"></i>
+					</span>
+				</li>
+			</ul>
+		</div>
+		<div class="message-input">
+			<emoji-mart title="Pick your emoji…" emoji="point_up" *ngIf="showEmoji" (emojiSelect)="addEmoji($event)">
+			</emoji-mart>
+			<div *ngIf="showGiphySearch" class="giphy-search">
+				<form (ngSubmit)="searchGiphy()">
+					<input type="text" placeholder="Search for a GIF" name="giphy" [(ngModel)]="giphySearchTerm">
+				</form>
+				<ul class="search-results">
+					<li class="gif-result" *ngFor="let result of giphyResults">
+						<img src="{{ result.images.downsized_large.url }}"
+							(click)="sendGif(result.title, result.images.original.url)">
+					</li>
+				</ul>
+			</div>
+			<div class="wrap">
+				<i class="fa fa-smile-o icon-emoticon-smile attachment" aria-hidden="true"
+					(click)="showEmojiPicker()"></i>
+				<!-- <i class="fa fa-image attachment" aria-hidden="true"
+					(click)="toggleGiphySearch()"></i> -->
+				<input type="text" [(value)]="message" [(ngModel)]="message" id="message"
+					placeholder="Write your message..." />
+				<i class="fa fa-paperclip attachment" aria-hidden="true"></i>
+				<button class="submit"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
+			</div>
+		</div>
+  </div>
+  <div class="videopanel">
+    <img src="" style="width: 100%;height:100%;" id="cimg" />
+    <video id="yourvideo" style="width:100%;height:100%;display: none" muted></video>
+    <canvas #preview id="preview" style="width: 200px;height: 300px;position:absolute;top:0px;left: 400px;display: none;"></canvas>
+  </div>
+  <div class="bottomToolbar">
+    <div style="position: absolute;">
+      <div class="mainbtn" (click)="toggleMessagePanel()">
+        <div class="btncomp">
+          <i class="fa fa-comments"></i>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="mainbtn">
+        <div class="btncomp" (click)="toggleAudio()" id="mute">
+          <i class="fa fa-microphone"></i>
+        </div>
+      </div>
+
+      <div class="mainbtn">
+        <div class="btncomp stopCall" (click)="stopVideoCall()">
+          <i class="fa fa-stop-circle"></i>
+        </div>
+      </div>
+
+      <div class="mainbtn">
+        <div class="btncomp" (click)="toggleCamera()">
+          <fa name="camera"></fa>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
